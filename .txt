@@ -2,6 +2,7 @@ import { IconUser, IconKey } from "@tabler/icons-react";
 import { Message } from "primereact/message";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+// import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useSignUp from "../../hooks/useSignUp.js";
 
 const SignUpPage = () => {
@@ -13,15 +14,56 @@ const SignUpPage = () => {
     gender: "",
   });
 
-  const { loading, signup } = useSignUp(); // Destructure loading and signup
+  const [isError,error,signup]=useSignUp();
   const [buttonClicked, setButtonClicked] = useState(false);
+  // const queryClient = useQueryClient();
+
+  // const { mutate, isError, error } = useMutation({
+  //   mutationFn: async (formData) => {
+  //     try {
+  //       const res = await fetch("/api/auth/signup", {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify(formData),
+  //       });
+
+  //       const data = await res.json();
+  //       if (!res.ok) throw new Error(data.error || "Failed to create account");
+  //       console.log(data);
+  //       return data;
+  //     } catch (error) {
+  //       console.error(error);
+  //       throw error;
+  //     }
+  //   },
+  //   onSuccess: () => {
+  //     toast.success("Account created successfully");
+  //     queryClient.invalidateQueries({ queryKey: ["authUser"] });
+  //   },
+  // });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setButtonClicked(true);
+    await signup()
+    // if (
+    //   !formData.username ||
+    //   !formData.fullname ||
+    //   !formData.password ||
+    //   !formData.confirmPassword ||
+    //   !formData.gender
+    // ) {
+    //   toast.error("All fields are required");
+    //   return;
+    // }
 
-    console.log("Form submitted with data:", formData);
-    signup(formData);
+    // if (formData.password !== formData.confirmPassword) {
+    //   toast.error("Passwords do not match");
+    //   return;
+    // }
+
   };
 
   const handleInputChange = (e) => {
@@ -126,7 +168,8 @@ const SignUpPage = () => {
               <option value="">Select Gender</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
-              <option value="Other">Other</option>
+              <option value="Other">Other</option>{" "}
+              {/* Added "Other" option to match the enum */}
             </select>
           </div>
           <Link to="/login" className="text-blue-600 mb-2 block">
@@ -135,11 +178,10 @@ const SignUpPage = () => {
           <button
             type="submit"
             className="w-full py-2 rounded-md bg-blue-600 text-white text-lg"
-            disabled={loading}
           >
-            {loading ? "Signing Up..." : "Sign Up"}
+            Sign Up
           </button>
-          {loading && <p className="text-green-500 mt-2">Loading...</p>}
+          {isError && <p className="text-red-500 mt-2">{error.message}</p>}
         </form>
       </div>
     </div>

@@ -23,49 +23,57 @@ export const login = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error!!!" });
   }
 };
-
 export const signup = async (req, res) => {
   try {
-    const { fullname, username, password, conformPassword, gender } = req.body;
-    if (password !== conformPassword)
-      return res
-        .status(400)
-        .json({ error: "Conform password and Password does't match!!!" });
+    const { fullname, username, password, confirmPassword, gender } = req.body;
 
-    const existinUser = await User.findOne({ username });
-    if (existinUser)
-      return res.status(400).json({ error: "Username is already taken!!!" });
+    // Logging the received data
+    console.log("Request Body:", req.body);
 
-    // Encrypt password
+    if (!fullname || !username || !password || !confirmPassword || !gender) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({ error: "Passwords do not match" });
+    }
+
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ error: "Username is already taken" });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+
+    const boyProfilePic = `https://avatar.iran.liara.run/public/boy?username=${username}`;
+    const girlProfilePic = `https://avatar.iran.liara.run/public/girl?username=${username}`;
 
     const newUser = new User({
       fullname,
       username,
       password: hashedPassword,
       gender,
+      profilePic: gender === "Male" ? boyProfilePic : girlProfilePic,
     });
 
     await newUser.save();
 
-    if (newUser) {
-      generateTokenSetCookie(newUser._id, res);
-      await newUser.save();
-      res.status(200).json({
-        _id: newUser._id,
-        fullname: fullname,
-        username: username,
-        gender: gender,
-      });
-    } else {
-      res.status(400).json({ error: "Invalid Data!!!" });
-    }
+    generateTokenSetCookie(newUser._id, res);
+
+    res.status(200).json({
+      _id: newUser._id,
+      fullname: newUser.fullname,
+      username: newUser.username,
+      gender: newUser.gender,
+      profilePic: newUser.profilePic,
+    });
   } catch (error) {
-    console.log("Error in signUp controller: ", error.message);
-    res.status(500).json({ error: "Internal Server Error!!!" });
+    console.error("Error in signup controller:", error.message, error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 export const logout = async (req, res) => { 
   try {

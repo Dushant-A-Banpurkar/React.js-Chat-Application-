@@ -1,11 +1,9 @@
 import mongoose from "mongoose";
 import User from "../models/user_model.js";
-mongoose;
 
 export const getUserForSideBar = async (req, res) => {
   try {
     const { loggedInUserID } = req.body;
-
     const loggedInUserObjectId = new mongoose.Types.ObjectId(loggedInUserID);
 
     const filteredUsers = await User.find({
